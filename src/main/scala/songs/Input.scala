@@ -1,0 +1,6 @@
+package songs
+
+object Input {
+
+
+}

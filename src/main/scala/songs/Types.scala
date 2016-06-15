@@ -89,9 +89,9 @@ object Types {
     ,tempo: Double
     ,danceability: Double
     ,energy: Double
-    ,key: Int
-    ,mode: Int
-    ,time_signature: Int
+    ,key: Double // converted from Int
+    ,mode: Double // converted from Int
+    ,time_signature: Double // converted from Int
     ,pitchRange: Double
     ,timbreRange: Double
     ,year: Double

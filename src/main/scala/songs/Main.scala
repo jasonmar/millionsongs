@@ -10,12 +10,12 @@ object Main {
 
   def main(args: Array[String]): Unit = {
 
-    // a list of paths to HDF5 files
-    val files: Vector[String] = Files.getPaths(Config.inputDir)
-
     val conf = new SparkConf().setAppName(Config.appName)
     val sc = new SparkContext(conf)
     val sqlContext = new SQLContext(sc)
+
+    // a list of paths to HDF5 files
+    val files: Vector[String] = Files.getPaths(Config.inputDir)
 
     // send list of files to the cluster
     val h5PathRDD = sc.parallelize(files, Config.nWorkers)
@@ -26,8 +26,7 @@ object Main {
       .flatMap(_.toOption)
       .map(SongML.extractFeatures)
 
-    // convert RDD to DataFrame
-    val songsDataFrame = sqlContext.createDataFrame(songsRDD).toDF(SongML.allColumns)
+    val songsDataFrame = sqlContext.createDataFrame(songsRDD).toDF(SongML.allColumns:_*)
 
     // split into training and test
     val modelData = SongML.splitDataFrame(songsDataFrame)

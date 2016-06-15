@@ -58,9 +58,9 @@ object SongML {
 
   val labelColumn = "artist_hotttnesss"
   val predictionColumn = "hotness_hat"
+  val ignoredColumn = "song_hotttnesss"
 
-  val allColumns = featureColumns + labelColumn
-
+  val allColumns = Vector(labelColumn,ignoredColumn) ++ featureColumns
 
   // encode categorical variables
   val encoder1 = new OneHotEncoder().setInputCol("key").setOutputCol("keyVec")

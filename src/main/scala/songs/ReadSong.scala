@@ -83,7 +83,7 @@ object ReadSong {
     val artist_mbtags = Try{f.readStringArray(mbPath(Fields.artist_mbtags))}.getOrElse(Array.empty[String]).toVector
     val artist_mbtags_count = f.readIntArray(mbPath(Fields.artist_mbtags_count)).toVector
     
-    val analysis_sample_rate = analysis.get[Double](Fields.analysis_sample_rate)
+    val analysis_sample_rate = analysis.get[Int](Fields.analysis_sample_rate)
     val danceability = analysis.get[Double](Fields.danceability)
     val duration = analysis.get[Double](Fields.duration)
     val end_of_fade_in = analysis.get[Double](Fields.end_of_fade_in)

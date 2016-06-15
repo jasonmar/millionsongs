@@ -31,7 +31,7 @@ object Main {
     // split into training and test
     val modelData = SongML.splitDataFrame(songsDataFrame)
 
-    modelData.training.describe(SongML.featureColumns:_*)
+    modelData.training.describe(SongML.allColumns:_*)
 
     // Train the model
     val startTime = System.nanoTime()

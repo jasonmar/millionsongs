@@ -39,6 +39,22 @@ object SongML {
     )
   }
 
+  val initialColumns = Array(
+    "duration"
+    ,"loudness"
+    ,"end_of_fade_in"
+    ,"start_of_fade_out"
+    ,"tempo"
+    ,"danceability"
+    ,"energy"
+    ,"key"
+    ,"mode"
+    ,"time_signature"
+    ,"pitchRange"
+    ,"timbreRange"
+    ,"year"
+  )
+
   // specify columns to be used in features vector
   val featureColumns = Array(
     "duration"
@@ -59,8 +75,9 @@ object SongML {
   val labelColumn = "artist_hotttnesss"
   val predictionColumn = "hotness_hat"
   val ignoredColumn = "song_hotttnesss"
+  val featuresColumn = "features"
 
-  val allColumns = Vector(labelColumn,ignoredColumn) ++ featureColumns
+  val allColumns = Vector(labelColumn,ignoredColumn) ++ initialColumns
 
   // encode categorical variables
   val encoder1 = new OneHotEncoder().setInputCol("key").setOutputCol("keyVec")
@@ -69,17 +86,17 @@ object SongML {
   // combine columns into a feature vector
   val assembler = new VectorAssembler()
     .setInputCols(featureColumns)
-    .setOutputCol("features")
+    .setOutputCol(featuresColumn)
 
   // specify the model hyperparameters
   val lir = new LinearRegression()
-    .setFeaturesCol("features")
-    .setLabelCol("artist_hotttnesss")
+    .setFeaturesCol(featuresColumn)
+    .setLabelCol(labelColumn)
     .setRegParam(0.0)
     .setElasticNetParam(0.0)
     .setMaxIter(1000)
     .setTol(1e-6)
-    .setPredictionCol("prediction")
+    .setPredictionCol(predictionColumn)
 
   // create a pipeline to run the encoding, feature assembly, and model training steps
   val pipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler, lir))

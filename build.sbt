@@ -12,6 +12,8 @@ libraryDependencies += "org.apache.spark" % "spark-hive_2.10" % "1.6.1"
 
 libraryDependencies += "org.apache.spark" % "spark-repl_2.10" % "1.6.1"
 
+libraryDependencies += "com.github.fommil.netlib" % "all" % "1.1.2" pomOnly()
+
 libraryDependencies += "ch.ethz" % "sis-jhdf5-core" % "1.0.0"
 
 libraryDependencies += "ch.ethz" % "sis-base" % "1.0.0"

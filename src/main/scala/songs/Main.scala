@@ -1,8 +1,5 @@
 package songs
 
-import org.apache.spark.ml.Pipeline
-import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
-import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.mllib.regression.LinearRegressionModel
 import org.apache.spark.rdd.RDD
@@ -30,70 +27,16 @@ object Main {
       .map(SongML.extractFeatures)
 
     // convert RDD to DataFrame
-    val songsDataFrame = sqlContext.createDataFrame(songsRDD).toDF(
-      "artist_hotttnesss"
-      ,"song_hotttnesss"
-      ,"duration"
-      ,"loudness"
-      ,"end_of_fade_in"
-      ,"start_of_fade_out"
-      ,"tempo"
-      ,"danceability"
-      ,"energy"
-      ,"key"
-      ,"mode"
-      ,"time_signature"
-      ,"pitchRange"
-      ,"timbreRange"
-      ,"year"
-    )
-
-    // encode categorical variables
-    val encoder1 = new OneHotEncoder().setInputCol("key").setOutputCol("keyVec")
-    val encoder2 = new OneHotEncoder().setInputCol("mode").setOutputCol("modeVec")
-
-    // specify columns to be used in features vector
-    val featureColumns = Array(
-      "artist_hotttnesss"
-      ,"duration"
-      ,"loudness"
-      ,"end_of_fade_in"
-      ,"start_of_fade_out"
-      ,"tempo"
-      ,"danceability"
-      ,"energy"
-      ,"keyVec"
-      ,"modeVec"
-      ,"time_signature"
-      ,"pitchRange"
-      ,"timbreRange"
-      ,"year"
-    )
-
-    // combine columns into a feature vector
-    val assembler = new VectorAssembler()
-      .setInputCols(featureColumns)
-      .setOutputCol("features")
-
-    // specify the model hyperparameters
-    val lir = new LinearRegression()
-      .setFeaturesCol("features")
-      .setLabelCol("artist_hotttnesss")
-      .setRegParam(0.0)
-      .setElasticNetParam(0.0)
-      .setMaxIter(1000)
-      .setTol(1e-6)
-      .setPredictionCol("prediction")
-
-    // create a pipeline to run the encoding, feature assembly, and model training steps
-    val pipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler, lir))
+    val songsDataFrame = sqlContext.createDataFrame(songsRDD).toDF(SongML.allColumns)
 
     // split into training and test
     val modelData = SongML.splitDataFrame(songsDataFrame)
 
+    modelData.training.describe(SongML.featureColumns:_*)
+
     // Train the model
     val startTime = System.nanoTime()
-    val lirModel = pipeline.fit(modelData.training)
+    val lirModel = SongML.pipeline.fit(modelData.training)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
     println(s"Training time: $elapsedTime seconds")
 
@@ -102,7 +45,7 @@ object Main {
     val savedModel = LinearRegressionModel.load(sc,Config.modelOut)
 
     // Print the weights and intercept for linear regression.
-    val colWeights = featureColumns.zip(savedModel.weights.toArray)
+    val colWeights = SongML.featureColumns.zip(savedModel.weights.toArray)
     println(s"Weights: $colWeights")
     println(s"Intercept: ${savedModel.intercept}")
 

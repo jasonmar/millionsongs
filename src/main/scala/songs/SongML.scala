@@ -1,5 +1,8 @@
 package songs
 
+import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
+import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.sql.DataFrame
 import songs.Types.{Song, SongFeatures}
 
@@ -35,5 +38,48 @@ object SongML {
       ,s.track.year
     )
   }
+
+  // specify columns to be used in features vector
+  val featureColumns = Array(
+    "artist_hotttnesss"
+    ,"duration"
+    ,"loudness"
+    ,"end_of_fade_in"
+    ,"start_of_fade_out"
+    ,"tempo"
+    ,"danceability"
+    ,"energy"
+    ,"keyVec"
+    ,"modeVec"
+    ,"time_signature"
+    ,"pitchRange"
+    ,"timbreRange"
+    ,"year"
+  )
+
+  val allColumns = featureColumns + "song_hotttnesss"
+
+
+  // encode categorical variables
+  val encoder1 = new OneHotEncoder().setInputCol("key").setOutputCol("keyVec")
+  val encoder2 = new OneHotEncoder().setInputCol("mode").setOutputCol("modeVec")
+
+  // combine columns into a feature vector
+  val assembler = new VectorAssembler()
+    .setInputCols(featureColumns)
+    .setOutputCol("features")
+
+  // specify the model hyperparameters
+  val lir = new LinearRegression()
+    .setFeaturesCol("features")
+    .setLabelCol("artist_hotttnesss")
+    .setRegParam(0.0)
+    .setElasticNetParam(0.0)
+    .setMaxIter(1000)
+    .setTol(1e-6)
+    .setPredictionCol("prediction")
+
+  // create a pipeline to run the encoding, feature assembly, and model training steps
+  val pipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler, lir))
 
 }

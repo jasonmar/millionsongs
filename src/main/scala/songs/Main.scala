@@ -9,112 +9,116 @@ import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.SQLContext
 import songs.Types._
 
-object Main extends App {
+object Main {
 
-  // a list of paths to HDF5 files
-  val files: Vector[String] = Files.getPaths(Config.inputDir)
+  def main(args: Array[String]): Unit = {
 
-  val conf = new SparkConf().setAppName(Config.appName).setMaster(Config.master)
-  val sc = new SparkContext(conf)
-  val sqlContext = new SQLContext(sc)
+    // a list of paths to HDF5 files
+    val files: Vector[String] = Files.getPaths(Config.inputDir)
 
-  // send list of files to the cluster
-  val h5PathRDD = sc.parallelize(files, Config.nWorkers)
+    val conf = new SparkConf().setAppName(Config.appName)
+    val sc = new SparkContext(conf)
+    val sqlContext = new SQLContext(sc)
 
-  // read song features from the files
-  val songsRDD: RDD[SongFeatures] = h5PathRDD.map(HDF5.open).flatMap(_.toOption)
-    .map(ReadSong.readSongs)
-    .flatMap(_.toOption)
-    .map(SongML.extractFeatures)
+    // send list of files to the cluster
+    val h5PathRDD = sc.parallelize(files, Config.nWorkers)
 
-  // convert RDD to DataFrame
-  val songsDataFrame = sqlContext.createDataFrame(songsRDD).toDF(
-    "artist_hotttnesss"
-    ,"song_hotttnesss"
-    ,"duration"
-    ,"loudness"
-    ,"end_of_fade_in"
-    ,"start_of_fade_out"
-    ,"tempo"
-    ,"danceability"
-    ,"energy"
-    ,"key"
-    ,"mode"
-    ,"time_signature"
-    ,"pitchRange"
-    ,"timbreRange"
-    ,"year"
-  )
+    // read song features from the files
+    val songsRDD: RDD[SongFeatures] = h5PathRDD.map(HDF5.open).flatMap(_.toOption)
+      .map(ReadSong.readSongs)
+      .flatMap(_.toOption)
+      .map(SongML.extractFeatures)
 
-  // encode categorical variables
-  val encoder1 = new OneHotEncoder().setInputCol("key").setOutputCol("keyVec")
-  val encoder2 = new OneHotEncoder().setInputCol("mode").setOutputCol("modeVec")
+    // convert RDD to DataFrame
+    val songsDataFrame = sqlContext.createDataFrame(songsRDD).toDF(
+      "artist_hotttnesss"
+      ,"song_hotttnesss"
+      ,"duration"
+      ,"loudness"
+      ,"end_of_fade_in"
+      ,"start_of_fade_out"
+      ,"tempo"
+      ,"danceability"
+      ,"energy"
+      ,"key"
+      ,"mode"
+      ,"time_signature"
+      ,"pitchRange"
+      ,"timbreRange"
+      ,"year"
+    )
 
-  // specify columns to be used in features vector
-  val featureColumns = Array(
-    "artist_hotttnesss"
-    ,"duration"
-    ,"loudness"
-    ,"end_of_fade_in"
-    ,"start_of_fade_out"
-    ,"tempo"
-    ,"danceability"
-    ,"energy"
-    ,"keyVec"
-    ,"modeVec"
-    ,"time_signature"
-    ,"pitchRange"
-    ,"timbreRange"
-    ,"year"
-  )
+    // encode categorical variables
+    val encoder1 = new OneHotEncoder().setInputCol("key").setOutputCol("keyVec")
+    val encoder2 = new OneHotEncoder().setInputCol("mode").setOutputCol("modeVec")
 
-  // combine columns into a feature vector
-  val assembler = new VectorAssembler()
-    .setInputCols(featureColumns)
-    .setOutputCol("features")
+    // specify columns to be used in features vector
+    val featureColumns = Array(
+      "artist_hotttnesss"
+      ,"duration"
+      ,"loudness"
+      ,"end_of_fade_in"
+      ,"start_of_fade_out"
+      ,"tempo"
+      ,"danceability"
+      ,"energy"
+      ,"keyVec"
+      ,"modeVec"
+      ,"time_signature"
+      ,"pitchRange"
+      ,"timbreRange"
+      ,"year"
+    )
 
-  // specify the model hyperparameters
-  val lir = new LinearRegression()
-    .setFeaturesCol("features")
-    .setLabelCol("artist_hotttnesss")
-    .setRegParam(0.0)
-    .setElasticNetParam(0.0)
-    .setMaxIter(1000)
-    .setTol(1e-6)
-    .setPredictionCol("prediction")
+    // combine columns into a feature vector
+    val assembler = new VectorAssembler()
+      .setInputCols(featureColumns)
+      .setOutputCol("features")
 
-  // create a pipeline to run the encoding, feature assembly, and model training steps
-  val pipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler, lir))
+    // specify the model hyperparameters
+    val lir = new LinearRegression()
+      .setFeaturesCol("features")
+      .setLabelCol("artist_hotttnesss")
+      .setRegParam(0.0)
+      .setElasticNetParam(0.0)
+      .setMaxIter(1000)
+      .setTol(1e-6)
+      .setPredictionCol("prediction")
 
-  // split into training and test
-  val modelData = SongML.splitDataFrame(songsDataFrame)
+    // create a pipeline to run the encoding, feature assembly, and model training steps
+    val pipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler, lir))
 
-  // Train the model
-  val startTime = System.nanoTime()
-  val lirModel = pipeline.fit(modelData.training)
-  val elapsedTime = (System.nanoTime() - startTime) / 1e9
-  println(s"Training time: $elapsedTime seconds")
+    // split into training and test
+    val modelData = SongML.splitDataFrame(songsDataFrame)
 
-  // Save the trained model
-  lirModel.save(Config.modelOut)
-  val savedModel = LinearRegressionModel.load(sc,Config.modelOut)
+    // Train the model
+    val startTime = System.nanoTime()
+    val lirModel = pipeline.fit(modelData.training)
+    val elapsedTime = (System.nanoTime() - startTime) / 1e9
+    println(s"Training time: $elapsedTime seconds")
 
-  // Print the weights and intercept for linear regression.
-  val colWeights = featureColumns.zip(savedModel.weights.toArray)
-  println(s"Weights: $colWeights")
-  println(s"Intercept: ${savedModel.intercept}")
+    // Save the trained model
+    lirModel.save(Config.modelOut)
+    val savedModel = LinearRegressionModel.load(sc,Config.modelOut)
 
-  // print training results
-  val trainingResults = lirModel.transform(modelData.test)
-  val trainingMSE = trainingResults.select("artist_hotttnesss","prediction").map(r => math.pow(r.getAs[Double]("artist_hotttnesss") - r.getAs[Double]("prediction"),2)).mean()
-  println("Training data results:")
-  println(s"MSE: $trainingMSE")
+    // Print the weights and intercept for linear regression.
+    val colWeights = featureColumns.zip(savedModel.weights.toArray)
+    println(s"Weights: $colWeights")
+    println(s"Intercept: ${savedModel.intercept}")
 
-  // print test results
-  val testResults = lirModel.transform(modelData.test)
-  val testMSE = testResults.select("artist_hotttnesss","prediction").map(r => math.pow(r.getAs[Double]("artist_hotttnesss") - r.getAs[Double]("prediction"),2)).mean()
-  println("Test data results:")
-  println(s"MSE: $testMSE")
+    // print training results
+    val trainingResults = lirModel.transform(modelData.test)
+    val trainingMSE = trainingResults.select("artist_hotttnesss","prediction").map(r => math.pow(r.getAs[Double]("artist_hotttnesss") - r.getAs[Double]("prediction"),2)).mean()
+    println("Training data results:")
+    println(s"MSE: $trainingMSE")
 
-  sc.stop()
+    // print test results
+    val testResults = lirModel.transform(modelData.test)
+    val testMSE = testResults.select("artist_hotttnesss","prediction").map(r => math.pow(r.getAs[Double]("artist_hotttnesss") - r.getAs[Double]("prediction"),2)).mean()
+    println("Test data results:")
+    println(s"MSE: $testMSE")
+
+    sc.stop()
+
+  }
 }

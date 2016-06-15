@@ -18,4 +18,9 @@ libraryDependencies += "ch.ethz" % "sis-base" % "1.0.0"
 
 //libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.2.4" % "test"
 
-mainClass in (Compile, run) := Some("songs.Main")
+mainClass in (Compile, run, assembly) := Some("songs.Main")
+
+assemblyJarName in assembly := "songs.jar"
+
+test in assembly := {}
+

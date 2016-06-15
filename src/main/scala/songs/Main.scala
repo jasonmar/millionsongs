@@ -51,13 +51,13 @@ object Main {
 
     // print training results
     val trainingResults = lirModel.transform(modelData.test)
-    val trainingMSE = trainingResults.select("artist_hotttnesss","prediction").map(r => math.pow(r.getAs[Double]("artist_hotttnesss") - r.getAs[Double]("prediction"),2)).mean()
+    val trainingMSE = trainingResults.select(SongML.labelColumn,SongML.predictionColumn).map(r => math.pow(r.getAs[Double](SongML.labelColumn) - r.getAs[Double](SongML.predictionColumn),2)).mean()
     println("Training data results:")
     println(s"MSE: $trainingMSE")
 
     // print test results
     val testResults = lirModel.transform(modelData.test)
-    val testMSE = testResults.select("artist_hotttnesss","prediction").map(r => math.pow(r.getAs[Double]("artist_hotttnesss") - r.getAs[Double]("prediction"),2)).mean()
+    val testMSE = testResults.select(SongML.labelColumn,SongML.predictionColumn).map(r => math.pow(r.getAs[Double](SongML.labelColumn) - r.getAs[Double](SongML.predictionColumn),2)).mean()
     println("Test data results:")
     println(s"MSE: $testMSE")
 

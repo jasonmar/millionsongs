@@ -41,8 +41,7 @@ object SongML {
 
   // specify columns to be used in features vector
   val featureColumns = Array(
-    "artist_hotttnesss"
-    ,"duration"
+    "duration"
     ,"loudness"
     ,"end_of_fade_in"
     ,"start_of_fade_out"
@@ -57,7 +56,10 @@ object SongML {
     ,"year"
   )
 
-  val allColumns = featureColumns + "song_hotttnesss"
+  val labelColumn = "artist_hotttnesss"
+  val predictionColumn = "hotness_hat"
+
+  val allColumns = featureColumns + labelColumn
 
 
   // encode categorical variables

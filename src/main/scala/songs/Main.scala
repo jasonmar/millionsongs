@@ -31,12 +31,18 @@ object Main {
     // split into training and test
     val modelData = SongML.splitDataFrame(songsDataFrame)
 
+    // persist to parquet format
+    modelData.persist()
+
+    val loaded = SongML.loadModelData(sqlContext = sqlContext)
+
     // show summary stats for our training data
-    modelData.training.describe(SongML.allColumns:_*).show(1000)
+    val summary = loaded.training.describe(SongML.allColumns:_*)
+    summary.show(1000)
 
     // Train the model
     val startTime = System.nanoTime()
-    val lirModel = SongML.pipeline.fit(modelData.training)
+    val lirModel = SongML.pipeline.fit(loaded.training)
     val elapsedTime = (System.nanoTime() - startTime) / 1e9
     println(s"Training time: $elapsedTime seconds")
 
@@ -50,13 +56,13 @@ object Main {
     println(s"Intercept: ${savedModel.intercept}")
 
     // print training results
-    val trainingResults = lirModel.transform(modelData.test)
+    val trainingResults = lirModel.transform(loaded.test)
     val trainingMSE = trainingResults.select(SongML.labelColumn,SongML.predictionColumn).map(r => math.pow(r.getAs[Double](SongML.labelColumn) - r.getAs[Double](SongML.predictionColumn),2)).mean()
     println("Training data results:")
     println(s"MSE: $trainingMSE")
 
     // print test results
-    val testResults = lirModel.transform(modelData.test)
+    val testResults = lirModel.transform(loaded.test)
     val testMSE = testResults.select(SongML.labelColumn,SongML.predictionColumn).map(r => math.pow(r.getAs[Double](SongML.labelColumn) - r.getAs[Double](SongML.predictionColumn),2)).mean()
     println("Test data results:")
     println(s"MSE: $testMSE")

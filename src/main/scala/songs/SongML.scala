@@ -3,15 +3,28 @@ package songs
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, SQLContext}
 import songs.Types.{Song, SongFeatures}
 
 object SongML {
 
-  case class ModelData(training: DataFrame, test: DataFrame, eval: DataFrame)
+  case class ModelData(training: DataFrame, test: DataFrame, eval: DataFrame){
+    def persist(): Unit = {
+      training.write.parquet("songs.training.parquet")
+      test.write.parquet("songs.test.parquet")
+      eval.write.parquet("songs.eval.parquet")
+    }
+  }
+
+  def loadModelData(trainingPath: String = "songs.training.parquet", testPath: String = "songs.test.parquet", evalPath: String = "songs.eval.parquet", sqlContext: SQLContext): ModelData = {
+    val trainingDF = sqlContext.read.parquet(trainingPath)
+    val testDF = sqlContext.read.parquet(testPath)
+    val evalDF = sqlContext.read.parquet(evalPath)
+    ModelData(trainingDF,testDF,evalDF)
+  }
 
   def splitDataFrame(df: DataFrame): ModelData = {
-    val dataFrames = df.randomSplit(Array(0.33,0.33,0.33), seed=1999)
+    val dataFrames = df.randomSplit(Array(0.45,0.45,0.1), seed=1999)
     val training = dataFrames.head.cache()
     val eval = dataFrames(1).cache()
     val test = dataFrames.last.cache()
@@ -82,7 +95,7 @@ object SongML {
   val lir = new LinearRegression()
     .setFeaturesCol(featuresColumn)
     .setLabelCol(labelColumn)
-    .setRegParam(0.0)
+    .setRegParam(0.1)
     .setElasticNetParam(0.0)
     .setMaxIter(1000)
     .setTol(1e-6)

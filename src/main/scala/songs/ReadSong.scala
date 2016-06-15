@@ -27,10 +27,10 @@ object ReadSong {
     val mb = getCompoundDS(f,"/musicbrainz/songs")
 
     val idx_similar_artists = metadata.get[Int](Fields.idx_similar_artists)
-    val similar_artists = f.readStringArray(meta(Fields.similar_artists)).toVector
+    val similar_artists = Try{f.readStringArray(meta(Fields.similar_artists))}.getOrElse(Array.empty[String]).toVector
 
     val idx_artist_terms = metadata.get[Int](Fields.idx_artist_terms)
-    val artist_terms = f.readStringArray(meta(Fields.artist_terms)).toVector
+    val artist_terms = Try{f.readStringArray(meta(Fields.artist_terms))}.getOrElse(Array.empty[String]).toVector
     val artist_terms_freq = f.readDoubleArray(meta(Fields.artist_terms_freq)).toVector
     val artist_terms_weight = f.readDoubleArray(meta(Fields.artist_terms_weight)).toVector
 
@@ -80,7 +80,7 @@ object ReadSong {
     val tatums_confidence = f.readDoubleArray(an(Fields.tatums_confidence)).toVector
 
     val idx_artist_mbtags = mb.get[Int](Fields.idx_artist_mbtags)
-    val artist_mbtags = f.readStringArray(mbPath(Fields.artist_mbtags)).toVector
+    val artist_mbtags = Try{f.readStringArray(mbPath(Fields.artist_mbtags))}.getOrElse(Array.empty[String]).toVector
     val artist_mbtags_count = f.readIntArray(mbPath(Fields.artist_mbtags_count)).toVector
     
     val analysis_sample_rate = analysis.get[Double](Fields.analysis_sample_rate)

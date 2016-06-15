@@ -1,6 +1,5 @@
 package songs
 
-import com.typesafe.config.ConfigFactory
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
@@ -12,22 +11,15 @@ import songs.Types._
 
 object Main extends App {
 
-  val config = ConfigFactory.load()
-  val inputDir = config.getString("songs.inputdir")
-  val appName = config.getString("songs.appname")
-  val master = config.getString("songs.master")
-  val nWorkers = config.getInt("songs.nworkers")
-  val modelOut = config.getString("songs.modelout")
-
   // a list of paths to HDF5 files
-  val files: Vector[String] = Files.getFiles(new java.io.File(inputDir)).map(_.getAbsolutePath)
+  val files: Vector[String] = Files.getPaths(Config.inputDir)
 
-  val conf = new SparkConf().setAppName(appName).setMaster(master)
+  val conf = new SparkConf().setAppName(Config.appName).setMaster(Config.master)
   val sc = new SparkContext(conf)
   val sqlContext = new SQLContext(sc)
 
   // send list of files to the cluster
-  val h5PathRDD = sc.parallelize(files, nWorkers)
+  val h5PathRDD = sc.parallelize(files, Config.nWorkers)
 
   // read song features from the files
   val songsRDD: RDD[SongFeatures] = h5PathRDD.map(HDF5.open).flatMap(_.toOption)
@@ -105,8 +97,8 @@ object Main extends App {
   println(s"Training time: $elapsedTime seconds")
 
   // Save the trained model
-  lirModel.save(modelOut)
-  val savedModel = LinearRegressionModel.load(sc,modelOut)
+  lirModel.save(Config.modelOut)
+  val savedModel = LinearRegressionModel.load(sc,Config.modelOut)
 
   // Print the weights and intercept for linear regression.
   val colWeights = featureColumns.zip(savedModel.weights.toArray)

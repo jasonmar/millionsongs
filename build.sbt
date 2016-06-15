@@ -12,7 +12,7 @@ libraryDependencies += "org.apache.spark" % "spark-hive_2.10" % "1.6.1"
 
 libraryDependencies += "org.apache.spark" % "spark-repl_2.10" % "1.6.1"
 
-libraryDependencies += "org.scala-saddle" % "saddle-hdf5_2.10" % "1.3.4"
+libraryDependencies += "ch.ethz" % "sis-jhdf5-core" % "1.0"
 
 //libraryDependencies += "org.scalatest" % "scalatest_2.10" % "2.2.4" % "test"
 

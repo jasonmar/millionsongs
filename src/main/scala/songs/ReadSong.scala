@@ -1,113 +1,123 @@
 package songs
 
-import ncsa.hdf.`object`.h5._
 import songs.Types._
 import HDF5._
+import ch.systemsx.cisd.hdf5._
+
 import scala.util._
 
 object ReadSong {
 
-  def meta(s: String): String = "/metadata/" + s
-  def an(s: String): String = "/analysis/" + s
-  def mbPath(s: String): String = "/musicbrainz/" + s
+  def buildPath(group: String, s: String): String = {
+    val sb = new StringBuilder(512)
+    sb.append('/')
+    sb.append(group)
+    sb.append('/')
+    sb.append(s)
+    sb.mkString
+  }
 
-  def readSongs(f: H5File): Try[Vector[Song]] = Try{
-    val metadata = getCompoundDS(f,meta("songs"))
-    val analysis = getCompoundDS(f,an("songs"))
-    val mb = getCompoundDS(f,mbPath("songs"))
+  def meta(s: String): String = buildPath("metadata",s)
+  def an(s: String): String = buildPath("analysis",s)
+  def mbPath(s: String): String = buildPath("musicbrainz",s)
 
-    val idx_similar_artists = metadata.toVector[Int](Fields.idx_similar_artists)
-    val similar_artists = getScalarDS(f,meta(Fields.similar_artists)).toVector[String]
+  def readSongs(f: IHDF5Reader): Try[Vector[Song]] = Try{
+    val metadata = getCompoundDS(f,"/metadata/songs")
+    val analysis = getCompoundDS(f,"/analysis/songs")
+    val mb = getCompoundDS(f,"/musicbrainz/songs")
 
-    val idx_artist_terms = metadata.toVector[Int](Fields.idx_artist_terms)
-    val artist_terms = getScalarDS(f,meta(Fields.artist_terms)).toVector[String]
-    val artist_terms_freq = getScalarDS(f,meta(Fields.artist_terms_freq)).toVector[Double]
-    val artist_terms_weight = getScalarDS(f,meta(Fields.artist_terms_weight)).toVector[Double]
+    val idx_similar_artists = metadata.vector[Int](Fields.idx_similar_artists)
+    val similar_artists = f.readStringArray(meta(Fields.similar_artists)).toVector
 
-    val idx_segments_start = analysis.toVector[Int](Fields.idx_segments_start)
-    val segments_start = getScalarDS(f,an(Fields.segments_start)).toVector[Double]
+    val idx_artist_terms = metadata.vector[Int](Fields.idx_artist_terms)
+    val artist_terms = f.readStringArray(meta(Fields.artist_terms)).toVector
+    val artist_terms_freq = f.readDoubleArray(meta(Fields.artist_terms_freq)).toVector
+    val artist_terms_weight = f.readDoubleArray(meta(Fields.artist_terms_weight)).toVector
 
-    val idx_segments_confidence = analysis.toVector[Int](Fields.idx_segments_confidence)
-    val segments_confidence = getScalarDS(f,an(Fields.segments_confidence)).toVector[Double]
+    val idx_segments_start = analysis.vector[Int](Fields.idx_segments_start)
+    val segments_start = f.readDoubleArray(an(Fields.segments_start)).toVector
 
-    val idx_segments_pitches = analysis.toVector[Int](Fields.idx_segments_pitches) // 2D Vector
-    val segments_pitches = getScalarDS(f,an(Fields.segments_pitches)).toVector[Double]
+    val idx_segments_confidence = analysis.vector[Int](Fields.idx_segments_confidence)
+    val segments_confidence = f.readDoubleArray(an(Fields.segments_confidence)).toVector
 
-    val idx_segments_timbre = analysis.toVector[Int](Fields.idx_segments_timbre) // 2D Vector
-    val segments_timbre = getScalarDS(f,an(Fields.segments_timbre)).toVector[Double]
+    val idx_segments_pitches = analysis.vector[Int](Fields.idx_segments_pitches) // 2D Vector
+    val segments_pitches = f.readDoubleArray(an(Fields.segments_pitches)).toVector
 
-    val idx_segments_loudness_max = analysis.toVector[Int](Fields.idx_segments_loudness_max)
-    val segments_loudness_max = getScalarDS(f,an(Fields.segments_loudness_max)).toVector[Double]
+    val idx_segments_timbre = analysis.vector[Int](Fields.idx_segments_timbre) // 2D Vector
+    val segments_timbre = f.readDoubleArray(an(Fields.segments_timbre)).toVector
 
-    val idx_segments_loudness_max_time = analysis.toVector[Int](Fields.idx_segments_loudness_max_time)
-    val segments_loudness_max_time = getScalarDS(f,an(Fields.segments_loudness_max_time)).toVector[Double]
+    val idx_segments_loudness_max = analysis.vector[Int](Fields.idx_segments_loudness_max)
+    val segments_loudness_max = f.readDoubleArray(an(Fields.segments_loudness_max)).toVector
 
-    val idx_segments_loudness_start = analysis.toVector[Int](Fields.idx_segments_loudness_start)
-    val segments_loudness_start = getScalarDS(f,an(Fields.segments_loudness_start)).toVector[Double]
+    val idx_segments_loudness_max_time = analysis.vector[Int](Fields.idx_segments_loudness_max_time)
+    val segments_loudness_max_time = f.readDoubleArray(an(Fields.segments_loudness_max_time)).toVector
 
-    val idx_sections_start = analysis.toVector[Int](Fields.idx_sections_start)
-    val sections_start = getScalarDS(f,an(Fields.sections_start)).toVector[Double]
+    val idx_segments_loudness_start = analysis.vector[Int](Fields.idx_segments_loudness_start)
+    val segments_loudness_start = f.readDoubleArray(an(Fields.segments_loudness_start)).toVector
 
-    val idx_sections_confidence = analysis.toVector[Int](Fields.idx_sections_confidence)
-    val sections_confidence = getScalarDS(f,an(Fields.sections_confidence)).toVector[Double]
+    val idx_sections_start = analysis.vector[Int](Fields.idx_sections_start)
+    val sections_start = f.readDoubleArray(an(Fields.sections_start)).toVector
 
-    val idx_beats_start = analysis.toVector[Int](Fields.idx_beats_start)
-    val beats_start = getScalarDS(f,an(Fields.beats_start)).toVector[Double]
+    val idx_sections_confidence = analysis.vector[Int](Fields.idx_sections_confidence)
+    val sections_confidence = f.readDoubleArray(an(Fields.sections_confidence)).toVector
 
-    val idx_beats_confidence = analysis.toVector[Int](Fields.idx_beats_confidence)
-    val beats_confidence = getScalarDS(f,an(Fields.beats_confidence)).toVector[Double]
+    val idx_beats_start = analysis.vector[Int](Fields.idx_beats_start)
+    val beats_start = f.readDoubleArray(an(Fields.beats_start)).toVector
 
-    val idx_bars_start = analysis.toVector[Int](Fields.idx_bars_start)
-    val bars_start = getScalarDS(f,an(Fields.bars_start)).toVector[Double]
+    val idx_beats_confidence = analysis.vector[Int](Fields.idx_beats_confidence)
+    val beats_confidence = f.readDoubleArray(an(Fields.beats_confidence)).toVector
 
-    val idx_bars_confidence = analysis.toVector[Int](Fields.idx_bars_confidence)
-    val bars_confidence = getScalarDS(f,an(Fields.bars_confidence)).toVector[Double]
+    val idx_bars_start = analysis.vector[Int](Fields.idx_bars_start)
+    val bars_start = f.readDoubleArray(an(Fields.bars_start)).toVector
 
-    val idx_tatums_start = analysis.toVector[Int](Fields.idx_tatums_start)
-    val tatums_start = getScalarDS(f,an(Fields.tatums_start)).toVector[Double]
+    val idx_bars_confidence = analysis.vector[Int](Fields.idx_bars_confidence)
+    val bars_confidence = f.readDoubleArray(an(Fields.bars_confidence)).toVector
 
-    val idx_tatums_confidence = analysis.toVector[Int](Fields.tatums_confidence)
-    val tatums_confidence = getScalarDS(f,an(Fields.tatums_confidence)).toVector[Double]
+    val idx_tatums_start = analysis.vector[Int](Fields.idx_tatums_start)
+    val tatums_start = f.readDoubleArray(an(Fields.tatums_start)).toVector
 
-    val idx_artist_mbtags = mb.toVector[Int](Fields.idx_artist_mbtags)
-    val artist_mbtags = getScalarDS(f,mbPath(Fields.artist_mbtags)).toVector[String]
-    val artist_mbtags_count = getScalarDS(f,mbPath(Fields.artist_mbtags_count)).toVector[Int]
+    val idx_tatums_confidence = analysis.vector[Int](Fields.tatums_confidence)
+    val tatums_confidence = f.readDoubleArray(an(Fields.tatums_confidence)).toVector
+
+    val idx_artist_mbtags = mb.vector[Int](Fields.idx_artist_mbtags)
+    val artist_mbtags = f.readStringArray(mbPath(Fields.artist_mbtags)).toVector
+    val artist_mbtags_count = f.readIntArray(mbPath(Fields.artist_mbtags_count)).toVector
     
-    val analysis_sample_rate = analysis.toVector[Double](Fields.analysis_sample_rate)
-    val danceability = analysis.toVector[Double](Fields.danceability)
-    val duration = analysis.toVector[Double](Fields.duration)
-    val end_of_fade_in = analysis.toVector[Double](Fields.end_of_fade_in)
-    val energy = analysis.toVector[Double](Fields.energy)
-    val key_confidence = analysis.toVector[Double](Fields.key_confidence)
-    val loudness = analysis.toVector[Double](Fields.loudness)
-    val mode_confidence = analysis.toVector[Double](Fields.mode_confidence)
-    val start_of_fade_out = analysis.toVector[Double](Fields.start_of_fade_out)
-    val tempo = analysis.toVector[Double](Fields.tempo)
-    val time_signature_confidence = analysis.toVector[Double](Fields.time_signature_confidence)
-    val artist_familiarity = metadata.toVector[Double](Fields.artist_familiarity)
-    val artist_hotttnesss = metadata.toVector[Double](Fields.artist_hotttnesss)
-    val artist_latitude = metadata.toVector[Double](Fields.artist_latitude)
-    val artist_longitude = metadata.toVector[Double](Fields.artist_longitude)
-    val song_hotttnesss = metadata.toVector[Double](Fields.song_hotttnesss)
-    val key = analysis.toVector[Int](Fields.key)
-    val mode = analysis.toVector[Int](Fields.mode)
-    val time_signature = analysis.toVector[Int](Fields.time_signature)
-    val artist_7digitalid = metadata.toVector[Int](Fields.artist_7digitalid)
-    val artist_playmeid = metadata.toVector[Int](Fields.artist_playmeid)
-    val release_7digitalid = metadata.toVector[Int](Fields.release_7digitalid)
-    val track_7digitalid = metadata.toVector[Int](Fields.track_7digitalid)
-    val year = mb.toVector[Int](Fields.year)
-    val audio_md5 = analysis.toVector[String](Fields.audio_md5)
-    val track_id = analysis.toVector[String](Fields.track_id)
-    val artist_id = metadata.toVector[String](Fields.artist_id)
-    val artist_location = metadata.toVector[String](Fields.artist_location)
-    val artist_mbid = metadata.toVector[String](Fields.artist_mbid)
-    val artist_name = metadata.toVector[String](Fields.artist_name)
-    val release = metadata.toVector[String](Fields.release)
-    val song_id = metadata.toVector[String](Fields.song_id)
-    val title = metadata.toVector[String](Fields.title)
-    
-    metadata.indices.map{i =>
+    val analysis_sample_rate = analysis.vector[Double](Fields.analysis_sample_rate)
+    val danceability = analysis.vector[Double](Fields.danceability)
+    val duration = analysis.vector[Double](Fields.duration)
+    val end_of_fade_in = analysis.vector[Double](Fields.end_of_fade_in)
+    val energy = analysis.vector[Double](Fields.energy)
+    val key_confidence = analysis.vector[Double](Fields.key_confidence)
+    val loudness = analysis.vector[Double](Fields.loudness)
+    val mode_confidence = analysis.vector[Double](Fields.mode_confidence)
+    val start_of_fade_out = analysis.vector[Double](Fields.start_of_fade_out)
+    val tempo = analysis.vector[Double](Fields.tempo)
+    val time_signature_confidence = analysis.vector[Double](Fields.time_signature_confidence)
+    val artist_familiarity = metadata.vector[Double](Fields.artist_familiarity)
+    val artist_hotttnesss = metadata.vector[Double](Fields.artist_hotttnesss)
+    val artist_latitude = metadata.vector[Double](Fields.artist_latitude)
+    val artist_longitude = metadata.vector[Double](Fields.artist_longitude)
+    val song_hotttnesss = metadata.vector[Double](Fields.song_hotttnesss)
+    val key = analysis.vector[Int](Fields.key)
+    val mode = analysis.vector[Int](Fields.mode)
+    val time_signature = analysis.vector[Int](Fields.time_signature)
+    val artist_7digitalid = metadata.vector[Int](Fields.artist_7digitalid)
+    val artist_playmeid = metadata.vector[Int](Fields.artist_playmeid)
+    val release_7digitalid = metadata.vector[Int](Fields.release_7digitalid)
+    val track_7digitalid = metadata.vector[Int](Fields.track_7digitalid)
+    val year = mb.vector[Int](Fields.year)
+    val audio_md5 = analysis.vector[String](Fields.audio_md5)
+    val track_id = analysis.vector[String](Fields.track_id)
+    val artist_id = metadata.vector[String](Fields.artist_id)
+    val artist_location = metadata.vector[String](Fields.artist_location)
+    val artist_mbid = metadata.vector[String](Fields.artist_mbid)
+    val artist_name = metadata.vector[String](Fields.artist_name)
+    val release = metadata.vector[String](Fields.release)
+    val song_id = metadata.vector[String](Fields.song_id)
+    val title = metadata.vector[String](Fields.title)
+
+    song_id.indices.map{i =>
 
       val artist = Artist(
         artist_7digitalid(i): Int //ID from 7digital.com or -1

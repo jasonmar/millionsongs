@@ -25,7 +25,6 @@ object Main extends App {
   val songsRDD: RDD[SongFeatures] = h5PathRDD.map(HDF5.open).flatMap(_.toOption)
     .map(ReadSong.readSongs)
     .flatMap(_.toOption)
-    .flatMap(s => s)
     .map(SongML.extractFeatures)
 
   // convert RDD to DataFrame

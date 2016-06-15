@@ -8,6 +8,7 @@ object HDF5 {
 
   case class H5CDS(ds: HDF5CompoundDataMap){
     def vector[T](colName: String): Vector[T] = ds.get(colName).asInstanceOf[Array[T]].toVector
+    def get[T](colName: String): T = ds.get(colName).asInstanceOf[T]
   }
 
   def getCompoundDS(h5: IHDF5Reader, path: String): H5CDS = {

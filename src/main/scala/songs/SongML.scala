@@ -22,17 +22,13 @@ object SongML {
   def extractFeatures(s: Song): SongFeatures = {
     SongFeatures(
       s.artist.artist_hotttnesss
-      ,s.track.song_hotttnesss
       ,s.audio.duration
       ,s.audio.loudness
       ,s.audio.end_of_fade_in
       ,s.audio.start_of_fade_out
       ,s.audio.tempo
-      ,s.audioEstimates.danceability
-      ,s.audioEstimates.energy
       ,s.audioEstimates.key
       ,s.audioEstimates.mode
-      ,s.audioEstimates.time_signature
       ,s.segments.segments_pitches.max - s.segments.segments_pitches.min
       ,s.segments.segments_timbre.max - s.segments.segments_timbre.min
       ,s.track.year
@@ -45,11 +41,8 @@ object SongML {
     ,"end_of_fade_in"
     ,"start_of_fade_out"
     ,"tempo"
-    ,"danceability"
-    ,"energy"
     ,"key"
     ,"mode"
-    ,"time_signature"
     ,"pitchRange"
     ,"timbreRange"
     ,"year"
@@ -62,11 +55,8 @@ object SongML {
     ,"end_of_fade_in"
     ,"start_of_fade_out"
     ,"tempo"
-    ,"danceability"
-    ,"energy"
     ,"keyVec"
     ,"modeVec"
-    ,"time_signature"
     ,"pitchRange"
     ,"timbreRange"
     ,"year"

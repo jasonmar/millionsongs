@@ -81,17 +81,13 @@ object Types {
 
   case class SongFeatures(
      artist_hotttnesss: Double
-    ,song_hotttnesss: Double
     ,duration: Double
     ,loudnes: Double
     ,end_of_fade_in: Double
     ,start_of_fade_out: Double
     ,tempo: Double
-    ,danceability: Double
-    ,energy: Double
     ,key: Double // converted from Int
     ,mode: Double // converted from Int
-    ,time_signature: Double // converted from Int
     ,pitchRange: Double
     ,timbreRange: Double
     ,year: Double

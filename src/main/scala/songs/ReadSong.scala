@@ -43,7 +43,7 @@ object ReadSong {
     val idx_segments_pitches = analysis.get[Int](Fields.idx_segments_pitches) // 2D Vector
     val segments_pitches = f.readDoubleArray(an(Fields.segments_pitches)).toVector
 
-    val idx_segments_timbre = analysis.vector[Int](Fields.idx_segments_timbre) // 2D Vector
+    val idx_segments_timbre = analysis.get[Int](Fields.idx_segments_timbre) // 2D Vector
     val segments_timbre = f.readDoubleArray(an(Fields.segments_timbre)).toVector
 
     val idx_segments_loudness_max = analysis.get[Int](Fields.idx_segments_loudness_max)

@@ -1,15 +1,17 @@
 package songs
 
 import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
+import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import songs.Types.{Song, SongFeatures}
 
 object SongML {
 
   case class ModelData(training: DataFrame, test: DataFrame, eval: DataFrame){
-    def persist(): Unit = {
+    def saveAsParquet(): Unit = {
       training.write.parquet("songs.training.parquet")
       test.write.parquet("songs.test.parquet")
       eval.write.parquet("songs.eval.parquet")
@@ -24,7 +26,7 @@ object SongML {
   }
 
   def splitDataFrame(df: DataFrame): ModelData = {
-    val dataFrames = df.randomSplit(Array(0.45,0.45,0.1), seed=1999)
+    val dataFrames = df.randomSplit(Array(0.8,0.1,0.1), seed=1999)
     val training = dataFrames.head.cache()
     val eval = dataFrames(1).cache()
     val test = dataFrames.last.cache()
@@ -81,26 +83,41 @@ object SongML {
 
   val allColumns = Vector(labelColumn) ++ initialColumns
 
-  // encode categorical variables
+  // Encodes categorical variables
   val encoder1 = new OneHotEncoder().setInputCol("key").setOutputCol("keyVec")
   val encoder2 = new OneHotEncoder().setInputCol("mode").setOutputCol("modeVec")
 
-  // combine columns into a feature vector
+  // Combines columns into a feature vector
   val assembler = new VectorAssembler()
     .setInputCols(featureColumns)
     .setOutputCol(featuresColumn)
 
   // specify the model hyperparameters
-  val lir = new LinearRegression()
+  val linReg = new LinearRegression()
     .setFeaturesCol(featuresColumn)
     .setLabelCol(labelColumn)
-    .setRegParam(0.1)
-    .setElasticNetParam(0.0)
+    .setPredictionCol(predictionColumn)
     .setMaxIter(1000)
     .setTol(1e-6)
-    .setPredictionCol(predictionColumn)
 
   // create a pipeline to run the encoding, feature assembly, and model training steps
-  val pipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler, lir))
+  val transformPipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler))
+
+  // Used in CrossValidator and TrainValidationSplit for hyperparameter optimization
+  val paramGrid = new ParamGridBuilder()
+    .addGrid(linReg.regParam, Array(0.1, 0.01))
+    .addGrid(linReg.fitIntercept)
+    .addGrid(linReg.elasticNetParam, Array(0.0, 0.25, 0.5, 0.75, 1.0))
+    .build()
+
+  val lrEstimator = new Pipeline().setStages(Array(encoder1, encoder2, assembler, linReg))
+
+  // CrossValidator was not used because it currently does not offer easy display of regression metrics
+  val trainingPipeline = new CrossValidator()
+    .setEstimator(lrEstimator)
+    .setEvaluator(new RegressionEvaluator)
+    .setEstimatorParamMaps(paramGrid)
+
+  // TrainValidationSplit was not used because it currently does not offer model save/load functionality
 
 }

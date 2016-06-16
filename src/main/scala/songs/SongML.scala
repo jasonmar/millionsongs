@@ -117,6 +117,8 @@ object SongML {
     features4
   )
 
+  val featureLists = featureSelection.map(a => (a.length,a)).toMap
+
   val paramGrid = new ParamGridBuilder()
     .addGrid(linReg.regParam, Array(0.1, 0.01))
     .addGrid(linReg.fitIntercept, Array(true,false))

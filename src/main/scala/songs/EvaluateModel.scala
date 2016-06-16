@@ -36,8 +36,10 @@ object EvaluateModel {
     val rm = new RegressionMetrics(testPredictions)
 
     logger.info("Model coefficients:")
-    model.coefficients.toArray.zip(SongML.featureColumns).foreach{t =>
-      logger.info(s"${t._2}:\t${t._1}")
+    SongML.featureLists.get(model.numFeatures).foreach{f =>
+      f.zip(model.coefficients.toArray).foreach{t =>
+        logger.info(s"${t._1}:\t${t._2}")
+      }
     }
     logger.info("Test Metrics")
     logger.info("Test Explained Variance:")

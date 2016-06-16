@@ -155,6 +155,11 @@ object SongML {
     sb.append(System.lineSeparator())
     sb.append("Model coefficients:")
     sb.append(System.lineSeparator())
+    sb.append(model.getFeaturesCol)
+    sb.append(System.lineSeparator())
+    sb.append(model.coefficients.toArray.toString)
+    sb.append(System.lineSeparator())
+
     SongML.featureLists.get(model.numFeatures).foreach{f =>
       f.zip(model.coefficients.toArray).foreach{t =>
         sb.append(s"${t._1}:\t${t._2}")

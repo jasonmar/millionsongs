@@ -129,19 +129,16 @@ object SongML {
 
   def loadLinearRegressionModel(sc: SparkContext, path: String): LinearRegressionModel = {
     val datapath = new Path(path, "data").toUri.toString
-    val sqlContext = SQLContext.getOrCreate(sc)
-    val dataRDD = sqlContext.read.parquet(datapath)
-    val dataArray = dataRDD.select("weights", "intercept").take(1)
-    val modelClass = "org.apache.spark.ml.regression.LinearRegressionModel"
-    assert(dataArray.length == 1, s"Unable to load $modelClass data from: $datapath")
-    val data = dataArray(0)
-    assert(data.length == 2, s"Unable to load $modelClass data from: $datapath")
-    data match {
-      case Row(weights: Vector, intercept: Double) =>
-        new LinearRegressionModel(weights, intercept)
-      case _ =>
-        throw new Exception(s"LinearRegressionModel.load failed to load model from $path")
-    }
+    SQLContext.getOrCreate(sc)
+      .read.parquet(datapath)
+      .select("coefficients", "intercept")
+      .take(1)
+      .map{
+        case Row(weights: Vector, intercept: Double) =>
+          new LinearRegressionModel(weights, intercept)
+        case _ =>
+          throw new Exception(s"LinearRegressionModel.load failed to load model from $path")
+      }.head
   }
 
 }

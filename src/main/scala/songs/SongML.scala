@@ -1,5 +1,7 @@
 package songs
 
+import java.text.DecimalFormat
+
 import org.apache.spark.ml.{Pipeline, PipelineStage}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{OneHotEncoder, StandardScaler, VectorAssembler}
@@ -121,7 +123,7 @@ object SongML {
 
   // Combines columns into a feature vector
   val assembler = new VectorAssembler()
-    .setInputCols(features4)
+    .setInputCols(featureColumns)
     .setOutputCol(featuresColumnUnscaled)
 
   // specify the model hyperparameters
@@ -146,7 +148,7 @@ object SongML {
     .addGrid(linReg.regParam, Vector(0.1, 0.01))
     .addGrid(linReg.fitIntercept, Vector(true, false))
     .addGrid(linReg.elasticNetParam, Vector(0.0, 0.2, 1.0))
-    .addGrid(assembler.inputCols, featureSelection)
+    //.addGrid(assembler.inputCols, featureSelection)
     .build()
 
   val lrStages: Array[PipelineStage] = transformStages ++ Array[PipelineStage](linReg)
@@ -166,6 +168,8 @@ object SongML {
   def printStats(model: LinearRegressionModel, rm: RegressionMetrics, stage: String): String = {
 
     val coefs = model.coefficients.toArray.toVector
+    val df = new DecimalFormat("0.00000")
+
 
     val sb = new StringBuilder(4096)
     sb.append(System.lineSeparator())
@@ -176,24 +180,27 @@ object SongML {
     sb.append(model.explainParams())
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
-    sb.append("Model coefficients:")
     sb.append(System.lineSeparator())
-    sb.append(coefs.toString)
+    sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
 
 
     SongML.featureLists.get(coefs.length).foreach{f =>
       sb.append("Model coefficients:")
+      sb.append(System.lineSeparator())
       f.zip(model.coefficients.toArray).foreach{t =>
-        sb.append(s"${t._1}:\t${t._2}")
+        sb.append(s"${t._1}:\t${df.format(t._2)}")
         sb.append(System.lineSeparator())
       }
+      sb.append(System.lineSeparator())
+      sb.append(System.lineSeparator())
 
       if (model.hasSummary){
+        sb.append(System.lineSeparator())
         sb.append("Coefficient t-values:")
         sb.append(System.lineSeparator())
         f.zip(model.summary.tValues.toVector).foreach{t =>
-          sb.append(s"${t._1}:\t${t._2}")
+          sb.append(s"${t._1}:\t${df.format(t._2)}")
           sb.append(System.lineSeparator())
         }
         sb.append(System.lineSeparator())
@@ -205,11 +212,11 @@ object SongML {
     sb.append(System.lineSeparator())
     sb.append(s"Explained Variance:\t${rm.explainedVariance}")
     sb.append(System.lineSeparator())
-    sb.append(s"R^2:\t\t\t${rm.r2}")
+    sb.append(s"R^2:\t\t\t${df.format(rm.r2)}")
     sb.append(System.lineSeparator())
-    sb.append(s"MSE:\t\t\t${rm.meanSquaredError}")
+    sb.append(s"MSE:\t\t\t${df.format(rm.meanSquaredError)}")
     sb.append(System.lineSeparator())
-    sb.append(s"RMSE:\t\t\t${rm.rootMeanSquaredError}")
+    sb.append(s"RMSE:\t\t\t${df.format(rm.rootMeanSquaredError)}")
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())

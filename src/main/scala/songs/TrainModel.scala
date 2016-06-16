@@ -42,10 +42,10 @@ object TrainModel {
 
     val model = bestModel.stages(SongML.lrStages.indices.last).asInstanceOf[LinearRegressionModel]
 
-    logger.info(SongML.printStats(model,rm,"Training"))
-
     logger.info(s"Saving model to ${Config.modelOut}")
     model.write.overwrite().save(Config.modelOut)
+
+    logger.info(SongML.printStats(model,rm,"Training"))
 
     logger.info("Exiting")
     sc.stop()

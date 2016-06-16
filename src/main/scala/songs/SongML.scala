@@ -78,6 +78,23 @@ object SongML {
     ,"year"
   )
 
+
+  // Used in CrossValidator and TrainValidationSplit for parameter selection
+  val features2 = featureColumns.filterNot(_ == "start_of_fade_out")
+  val features3 = features2.filterNot(_ == "tempo")
+  val features4 = features3.filterNot(_ == "duration")
+
+  // Used in hyperparameter grid to compare models with certain coefficients removed
+  val featureSelection: Vector[Array[String]] = Vector(
+    featureColumns,
+    features2,
+    features3,
+    features4
+  )
+
+  // Used to lookup feature names by number of features
+  val featureLists = featureSelection.map(a => (a.length,a)).toMap
+
   val labelColumn = "artist_hotttnesss"
   val predictionColumn = "hotness_hat"
   val featuresColumn = "features"
@@ -108,30 +125,15 @@ object SongML {
     .setOutputCol(featuresColumn)
 
   // create a pipeline to run the encoding, feature assembly, and model training steps
-  val transformStages: Array[PipelineStage] = Array(encoder1, encoder2, assembler, scaler1)
+  val transformStagesWithEncoding: Array[PipelineStage] = Array(encoder1, encoder2, assembler, scaler1)
+  val transformStages: Array[PipelineStage] = Array(assembler, scaler1)
   val transformPipeline = new Pipeline().setStages(transformStages)
-
-  // Used in CrossValidator and TrainValidationSplit for parameter selection
-  val features2 = featureColumns.filterNot(_ == "start_of_fade_out")
-  val features3 = features2.filterNot(_ == "tempo")
-  val features4 = features3.filterNot(_ == "duration")
-
-  // Used in hyperparameter grid to compare models with certain coefficients removed
-  val featureSelection: Vector[Array[String]] = Vector(
-    featureColumns,
-    features2,
-    features3,
-    features4
-  )
-
-  // Used to lookup feature names by number of features
-  val featureLists = featureSelection.map(a => (a.length,a)).toMap
 
   val paramGrid = new ParamGridBuilder()
     .addGrid(linReg.regParam, Vector(0.1, 0.01))
     .addGrid(linReg.fitIntercept, Vector(true, false))
     .addGrid(linReg.elasticNetParam, Vector(0.0, 0.2, 1.0))
-    //.addGrid(assembler.inputCols, featureSelection)
+    .addGrid(assembler.inputCols, featureSelection)
     .build()
 
   val lrStages: Array[PipelineStage] = transformStages ++ Array[PipelineStage](linReg)

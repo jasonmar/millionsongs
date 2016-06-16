@@ -102,7 +102,7 @@ object SongML {
     .setTol(1e-6)
     .setRegParam(0.1)
 
-  val scaler1 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol(featuresColumnUnscaled).setOutputCol(featuresColumn)
+  val scaler1 = new StandardScaler().setInputCol(featuresColumnUnscaled).setOutputCol(featuresColumn)
 
   // create a pipeline to run the encoding, feature assembly, and model training steps
   val transformStages: Array[PipelineStage] = Array(encoder1, encoder2, assembler, scaler1)

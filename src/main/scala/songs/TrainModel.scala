@@ -32,7 +32,7 @@ object TrainModel {
     logger.info(s"Training time: $elapsedTime seconds")
 
     logger.info("Calculating Regression Metrics")
-    val testPredictions: RDD[(Double,Double)] = model.transform(data.test)
+    val testPredictions: RDD[(Double,Double)] = model.transform(transformed)
       .select(SongML.predictionColumn, SongML.labelColumn)
       .map(r => (r.getAs[Double](SongML.predictionColumn), r.getAs[Double](SongML.labelColumn)))
 

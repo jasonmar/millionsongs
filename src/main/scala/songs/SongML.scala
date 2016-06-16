@@ -126,9 +126,14 @@ object SongML {
 
   val lrEstimator = new Pipeline().setStages(Array(encoder1, encoder2, assembler, linReg))
 
+  val regressionEvaluator = new RegressionEvaluator()
+    .setPredictionCol(predictionColumn)
+    .setLabelCol(labelColumn)
+    .setMetricName("r2")
+
   val trainingPipeline = new CrossValidator()
     .setEstimator(lrEstimator)
-    .setEvaluator(new RegressionEvaluator)
+    .setEvaluator(regressionEvaluator)
     .setEstimatorParamMaps(paramGrid)
     .setNumFolds(3)
 

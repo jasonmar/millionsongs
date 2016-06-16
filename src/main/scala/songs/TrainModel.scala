@@ -43,6 +43,7 @@ object TrainModel {
     val model = bestModel.stages(3).asInstanceOf[LinearRegressionModel]
 
     logger.info("Model coefficients:")
+    model.featuresCol.
     model.coefficients.toArray.zip(SongML.featureColumns).foreach{t =>
       logger.info(s"${t._2}:\t${t._1}")
     }

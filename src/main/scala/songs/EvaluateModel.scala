@@ -17,7 +17,6 @@ object EvaluateModel {
 
     logger.info(s"Loading Linear Regression Model from ${Config.modelOut}")
     val model = LinearRegressionModel.load(Config.modelOut)
-    model.
 
     logger.info("Printing weights and intercept for Linear Regression Model")
     val colWeights = SongML.featureColumns.zip(model.coefficients.toArray)

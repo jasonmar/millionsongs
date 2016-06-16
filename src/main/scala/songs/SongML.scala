@@ -5,10 +5,9 @@ import org.apache.spark.SparkContext
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
-import org.apache.spark.ml.regression.LinearRegression
+import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.mllib.linalg.Vector
-import org.apache.spark.mllib.regression.LinearRegressionModel
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 import songs.Types.{Song, SongFeatures}
 
@@ -132,8 +131,8 @@ object SongML {
       .select("coefficients", "intercept")
       .take(1)
       .map{
-        case Row(weights: Vector, intercept: Double) =>
-          new LinearRegressionModel(weights, intercept)
+        case Row(coefficients: Vector, intercept: Double) =>
+          new LinearRegressionModel(coefficients, intercept)
         case _ =>
           throw new Exception(s"LinearRegressionModel.load failed to load model from $path")
       }.head

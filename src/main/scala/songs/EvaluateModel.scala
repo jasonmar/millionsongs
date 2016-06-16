@@ -1,8 +1,7 @@
 package songs
 
 import org.apache.spark.mllib.evaluation.RegressionMetrics
-import org.apache.spark.{SparkConf, SparkContext, mllib}
-import org.apache.spark.mllib.regression.LinearRegressionModel
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
 import org.slf4j.LoggerFactory
 
@@ -29,12 +28,16 @@ object EvaluateModel {
     val testData = pipelineModel.transform(datasets.test)
 
     logger.info("Calculating Regression Metrics")
-    val testFeatures = testData.select(SongML.featuresColumn).map(r => r.getAs[mllib.linalg.Vector](SongML.featuresColumn))
-    val testPredictions = testFeatures.map(model.predict)
-    val testLabels = testData.select(SongML.labelColumn).map(r => r.getAs[Double](SongML.labelColumn))
+    val testFeatures = testData.select(SongML.labelColumn,SongML.featuresColumn)
+    val testPredictions = model.transform(testFeatures)
+      .select(SongML.labelColumn,SongML.predictionColumn)
+      .map(r => (r.getAs[Double](SongML.predictionColumn), r.getAs[Double](SongML.labelColumn)))
+    val rm = new RegressionMetrics(testPredictions)
 
-    val rm = new RegressionMetrics(testPredictions.zip(testLabels).map(t => (t._1, t._2)))
-
+    logger.info("Model coefficients:")
+    model.coefficients.toArray.zip(SongML.featureColumns).foreach{t =>
+      logger.info(s"${t._2}:\t${t._1}")
+    }
     logger.info("Test Metrics")
     logger.info("Test Explained Variance:")
     logger.info(s"${rm.explainedVariance}")

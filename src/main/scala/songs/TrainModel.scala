@@ -38,6 +38,10 @@ object TrainModel {
 
     val rm = new RegressionMetrics(testPredictions)
 
+    logger.info("Model coefficients:")
+    model.coefficients.toArray.zip(SongML.featureColumns).foreach{t =>
+      logger.info(s"${t._2}:\t${t._1}")
+    }
     logger.info("Training Metrics")
     logger.info("Training Explained Variance:")
     logger.info(s"${rm.explainedVariance}")

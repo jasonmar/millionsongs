@@ -103,18 +103,20 @@ object SongML {
     .setTol(1e-6)
     .setRegParam(0.1)
 
-  val scaler1 = new StandardScaler().setInputCol(featuresColumnUnscaled).setOutputCol(featuresColumn)
+  val scaler1 = new StandardScaler()
+    .setInputCol(featuresColumnUnscaled)
+    .setOutputCol(featuresColumn)
 
   // create a pipeline to run the encoding, feature assembly, and model training steps
   val transformStages: Array[PipelineStage] = Array(encoder1, encoder2, assembler, scaler1)
   val transformPipeline = new Pipeline().setStages(transformStages)
 
-  // Used in CrossValidator and TrainValidationSplit for hyperparameter optimization
-
+  // Used in CrossValidator and TrainValidationSplit for parameter selection
   val features2 = featureColumns.filterNot(_ == "start_of_fade_out")
   val features3 = features2.filterNot(_ == "tempo")
   val features4 = features3.filterNot(_ == "duration")
 
+  // Used in hyperparameter grid to compare models with certain coefficients removed
   val featureSelection: Array[Array[String]] = Array(
     featureColumns,
     features2,
@@ -122,6 +124,7 @@ object SongML {
     features4
   )
 
+  // Used to lookup feature names by number of features
   val featureLists = featureSelection.map(a => (a.length,a)).toMap
 
   val paramGrid = new ParamGridBuilder()
@@ -145,9 +148,6 @@ object SongML {
     .setEstimatorParamMaps(paramGrid)
     .setNumFolds(3)
 
-  // TrainValidationSplit was not used because it currently does not offer model save/load functionality
-
-
   def printStats(model: LinearRegressionModel, rm: RegressionMetrics, stage: String): String = {
     val sb = new StringBuilder(4096)
     sb.append(System.lineSeparator())
@@ -164,14 +164,13 @@ object SongML {
     sb.append(System.lineSeparator())
     sb.append(s"$stage Metrics")
     sb.append(System.lineSeparator())
-    sb.append(s"$stage Explained Variance:")
-    sb.append(s"${rm.explainedVariance}")
-    sb.append(s"$stage R^2:")
-    sb.append(s"${rm.r2}")
-    sb.append(s"$stage MSE:")
-    sb.append(s"${rm.meanSquaredError}")
-    sb.append(s"$stage RMSE:")
-    sb.append(s"${rm.rootMeanSquaredError}")
+    sb.append(s"Explained Variance:\t${rm.explainedVariance}")
+    sb.append(System.lineSeparator())
+    sb.append(s"R^2:\t\t${rm.r2}")
+    sb.append(System.lineSeparator())
+    sb.append(s"MSE:\t\t${rm.meanSquaredError}")
+    sb.append(System.lineSeparator())
+    sb.append(s"RMSE:\t\t${rm.rootMeanSquaredError}")
     sb.append(System.lineSeparator())
     sb.mkString
   }

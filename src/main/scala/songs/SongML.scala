@@ -124,15 +124,4 @@ object SongML {
 
   // TrainValidationSplit was not used because it currently does not offer model save/load functionality
 
-  def loadLinearRegressionModel(sc: SparkContext, path: String): LinearRegressionModel = {
-    val datapath = new Path(path, "data").toUri.toString
-    val sqlContext = SQLContext.getOrCreate(sc)
-    sqlContext.read.parquet(datapath).select("coefficients", "intercept").take(1).head match {
-      case Row(coefficients: Vector, intercept: Double) =>
-        new LinearRegressionModel(coefficients, intercept)
-      case _ =>
-        throw new Exception(s"LinearRegressionModel.load failed to load model from $path")
-    }
-  }
-
 }

@@ -1,5 +1,6 @@
 package songs
 
+import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.mllib.evaluation.RegressionMetrics
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.sql.SQLContext
@@ -15,10 +16,10 @@ object EvaluateModel {
     val logger = LoggerFactory.getLogger(getClass.getName)
 
     logger.info(s"Loading Linear Regression Model from ${Config.modelOut}")
-    val model = SongML.loadLinearRegressionModel(sc, Config.modelOut)
+    val model = LinearRegressionModel.load(Config.modelOut)
 
     logger.info("Printing weights and intercept for Linear Regression Model")
-    val colWeights = SongML.featureColumns.zip(model.weights.toArray)
+    val colWeights = SongML.featureColumns.zip(model.coefficients.toArray)
     logger.info(s"Weights: $colWeights")
     logger.info(s"Intercept: ${model.intercept}")
 

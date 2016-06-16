@@ -8,10 +8,7 @@ import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.mllib.linalg.Vector
-import org.apache.spark.mllib.regression.impl.GLMRegressionModel
-import org.apache.spark.mllib.regression.impl.GLMRegressionModel.SaveLoadV1_0.Data
-import org.apache.spark.mllib.regression.{LinearRegressionModel, RegressionModel}
-import org.apache.spark.mllib.util.Loader
+import org.apache.spark.mllib.regression.LinearRegressionModel
 import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 import songs.Types.{Song, SongFeatures}
 

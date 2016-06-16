@@ -175,20 +175,28 @@ object SongML {
     sb.append("Model params:")
     sb.append(model.explainParams())
     sb.append(System.lineSeparator())
+    sb.append(System.lineSeparator())
     sb.append("Model coefficients:")
     sb.append(System.lineSeparator())
     sb.append(coefs.toString)
     sb.append(System.lineSeparator())
-    if (model.hasSummary){
-      sb.append("Model t-values:")
-      sb.append(System.lineSeparator())
-      sb.append(model.summary.tValues.toVector.toString())
-      sb.append(System.lineSeparator())
-    }
+
 
     SongML.featureLists.get(coefs.length).foreach{f =>
+      sb.append("Model coefficients:")
       f.zip(model.coefficients.toArray).foreach{t =>
         sb.append(s"${t._1}:\t${t._2}")
+        sb.append(System.lineSeparator())
+      }
+
+      if (model.hasSummary){
+        sb.append("Coefficient t-values:")
+        sb.append(System.lineSeparator())
+        f.zip(model.summary.tValues.toVector).foreach{t =>
+          sb.append(s"${t._1}:\t${t._2}")
+          sb.append(System.lineSeparator())
+        }
+        sb.append(System.lineSeparator())
         sb.append(System.lineSeparator())
       }
     }

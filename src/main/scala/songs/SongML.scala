@@ -108,19 +108,32 @@ object SongML {
   val transformPipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler))
 
   // Used in CrossValidator and TrainValidationSplit for hyperparameter optimization
+
+  val features2 = featureColumns.filterNot(_ == "start_of_fade_out")
+  val features3 = features2.filterNot(_ == "tempo")
+  val features4 = features3.filterNot(_ == "duration")
+
+  val featureSelection: Array[Array[String]] = Array(
+    featureColumns,
+    features2,
+    features3,
+    features4
+  )
+
   val paramGrid = new ParamGridBuilder()
     .addGrid(linReg.regParam, Array(0.1, 0.01))
-    .addGrid(linReg.fitIntercept)
-    .addGrid(linReg.elasticNetParam, Array(0.0, 0.25, 0.5, 0.75, 1.0))
+    .addGrid(linReg.fitIntercept, Array(true,false))
+    .addGrid(linReg.elasticNetParam, Array(0.0, 0.2, 0.6, 1.0))
+    .addGrid(assembler.inputCols,featureSelection)
     .build()
 
   val lrEstimator = new Pipeline().setStages(Array(encoder1, encoder2, assembler, linReg))
 
-  // CrossValidator was not used because it currently does not offer easy display of regression metrics
   val trainingPipeline = new CrossValidator()
     .setEstimator(lrEstimator)
     .setEvaluator(new RegressionEvaluator)
     .setEstimatorParamMaps(paramGrid)
+    .setNumFolds(3)
 
   // TrainValidationSplit was not used because it currently does not offer model save/load functionality
 

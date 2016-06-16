@@ -18,11 +18,6 @@ object EvaluateModel {
     logger.info(s"Loading Linear Regression Model from ${Config.modelOut}")
     val model = LinearRegressionModel.load(Config.modelOut)
 
-    logger.info("Printing weights and intercept for Linear Regression Model")
-    val colWeights = SongML.featureColumns.zip(model.coefficients.toArray)
-    logger.info(s"Weights: $colWeights")
-    logger.info(s"Intercept: ${model.intercept}")
-
     logger.info("Loading datasets")
     val datasets = SongML.loadModelData(sqlContext = sqlContext)
     val pipelineModel = SongML.transformPipeline.fit(datasets.test)

@@ -1,8 +1,8 @@
 package songs
 
-import org.apache.spark.ml.Pipeline
+import org.apache.spark.ml.{Pipeline, PipelineStage}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
-import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
+import org.apache.spark.ml.feature.{OneHotEncoder, StandardScaler, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
 import org.apache.spark.sql.{DataFrame, SQLContext}
@@ -66,15 +66,15 @@ object SongML {
   // specify columns to be used in features vector
   val featureColumns = Array(
     "duration"
-    ,"loudness"
-    ,"end_of_fade_in"
+    ,"loudnessScaled"
+    ,"end_of_fade_inScaled"
     ,"start_of_fade_out"
     ,"tempo"
     ,"keyVec"
     ,"modeVec"
-    ,"pitchRange"
-    ,"timbreRange"
-    ,"year"
+    ,"pitchRangeScaled"
+    ,"timbreRangeScaled"
+    ,"yearScaled"
   )
 
   val labelColumn = "artist_hotttnesss"
@@ -101,8 +101,15 @@ object SongML {
     .setTol(1e-6)
     .setRegParam(0.1)
 
+  val scaler1 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("loudness").setOutputCol("loudnessScaled")
+  val scaler2 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("end_of_fade_in").setOutputCol("end_of_fade_inScaled")
+  val scaler3 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("pitchRange").setOutputCol("pitchRangeScaled")
+  val scaler4 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("timbreRange").setOutputCol("timbreRangeScaled")
+  val scaler5 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("year").setOutputCol("yearScaled")
+
   // create a pipeline to run the encoding, feature assembly, and model training steps
-  val transformPipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler))
+  val transformStages: Array[PipelineStage] = Array(encoder1, encoder2, scaler1, scaler2, scaler3, scaler4, scaler5, assembler)
+  val transformPipeline = new Pipeline().setStages(transformStages)
 
   // Used in CrossValidator and TrainValidationSplit for hyperparameter optimization
 
@@ -126,7 +133,8 @@ object SongML {
     .addGrid(assembler.inputCols,featureSelection)
     .build()
 
-  val lrEstimator = new Pipeline().setStages(Array(encoder1, encoder2, assembler, linReg))
+  val lrStages: Array[PipelineStage] = transformStages ++ Array[PipelineStage](linReg)
+  val lrEstimator = new Pipeline().setStages(lrStages)
 
   val regressionEvaluator = new RegressionEvaluator()
     .setPredictionCol(predictionColumn)

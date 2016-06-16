@@ -149,18 +149,22 @@ object SongML {
     .setNumFolds(3)
 
   def printStats(model: LinearRegressionModel, rm: RegressionMetrics, stage: String): String = {
+
+    val coefs = model.coefficients.toArray.toVector
+
     val sb = new StringBuilder(4096)
+    sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.append("Model coefficients:")
     sb.append(System.lineSeparator())
-    sb.append(model.getFeaturesCol)
+    sb.append(coefs.toString)
     sb.append(System.lineSeparator())
-    sb.append(model.coefficients.toArray.toString)
+    sb.append(model.summary.tValues.toVector.toString())
     sb.append(System.lineSeparator())
 
-    SongML.featureLists.get(model.numFeatures).foreach{f =>
+    SongML.featureLists.get(coefs.length).foreach{f =>
       f.zip(model.coefficients.toArray).foreach{t =>
         sb.append(s"${t._1}:\t${t._2}")
         sb.append(System.lineSeparator())
@@ -171,11 +175,14 @@ object SongML {
     sb.append(System.lineSeparator())
     sb.append(s"Explained Variance:\t${rm.explainedVariance}")
     sb.append(System.lineSeparator())
-    sb.append(s"R^2:\t\t${rm.r2}")
+    sb.append(s"R^2:\t\t\t${rm.r2}")
     sb.append(System.lineSeparator())
-    sb.append(s"MSE:\t\t${rm.meanSquaredError}")
+    sb.append(s"MSE:\t\t\t${rm.meanSquaredError}")
     sb.append(System.lineSeparator())
-    sb.append(s"RMSE:\t\t${rm.rootMeanSquaredError}")
+    sb.append(s"RMSE:\t\t\t${rm.rootMeanSquaredError}")
+    sb.append(System.lineSeparator())
+    sb.append(System.lineSeparator())
+    sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.mkString
   }

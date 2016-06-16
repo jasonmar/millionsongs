@@ -71,6 +71,19 @@ object SongML {
     ,"end_of_fade_in"
     ,"start_of_fade_out"
     ,"tempo"
+    ,"key"
+    ,"mode"
+    ,"pitchRange"
+    ,"timbreRange"
+    ,"year"
+  )
+
+  val featureColumnsWithEncoding = Array(
+    "duration"
+    ,"loudness"
+    ,"end_of_fade_in"
+    ,"start_of_fade_out"
+    ,"tempo"
     ,"keyVec"
     ,"modeVec"
     ,"pitchRange"

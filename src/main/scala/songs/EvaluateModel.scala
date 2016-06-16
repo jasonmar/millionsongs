@@ -30,21 +30,7 @@ object EvaluateModel {
       .map(r => (r.getAs[Double](SongML.predictionColumn), r.getAs[Double](SongML.labelColumn)))
     val rm = new RegressionMetrics(testPredictions)
 
-    logger.info("Model coefficients:")
-    SongML.featureLists.get(model.numFeatures).foreach{f =>
-      f.zip(model.coefficients.toArray).foreach{t =>
-        logger.info(s"${t._1}:\t${t._2}")
-      }
-    }
-    logger.info("Test Metrics")
-    logger.info("Test Explained Variance:")
-    logger.info(s"${rm.explainedVariance}")
-    logger.info("Test R^2:")
-    logger.info(s"${rm.r2}")
-    logger.info("Test MSE:")
-    logger.info(s"${rm.meanSquaredError}")
-    logger.info("Test RMSE:")
-    logger.info(s"${rm.rootMeanSquaredError}")
+    logger.info(SongML.printStats(model,rm,"Testing"))
 
     logger.info("Exiting")
     sc.stop()

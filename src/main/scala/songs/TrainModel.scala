@@ -42,22 +42,7 @@ object TrainModel {
 
     val model = bestModel.stages(SongML.lrStages.indices.last).asInstanceOf[LinearRegressionModel]
 
-    logger.info("Model coefficients:")
-    SongML.featureLists.get(model.numFeatures).foreach{f =>
-      f.zip(model.coefficients.toArray).foreach{t =>
-        logger.info(s"${t._1}:\t${t._2}")
-      }
-    }
-
-    logger.info("Training Metrics")
-    logger.info("Training Explained Variance:")
-    logger.info(s"${rm.explainedVariance}")
-    logger.info("Training R^2:")
-    logger.info(s"${rm.r2}")
-    logger.info("Training MSE:")
-    logger.info(s"${rm.meanSquaredError}")
-    logger.info("Training RMSE:")
-    logger.info(s"${rm.rootMeanSquaredError}")
+    logger.info(SongML.printStats(model,rm,"Training"))
 
     logger.info(s"Saving model to ${Config.modelOut}")
     model.write.overwrite().save(Config.modelOut)

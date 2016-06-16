@@ -3,8 +3,9 @@ package songs
 import org.apache.spark.ml.{Pipeline, PipelineStage}
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{OneHotEncoder, StandardScaler, VectorAssembler}
-import org.apache.spark.ml.regression.LinearRegression
+import org.apache.spark.ml.regression.{LinearRegression, LinearRegressionModel}
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
+import org.apache.spark.mllib.evaluation.RegressionMetrics
 import org.apache.spark.sql.{DataFrame, SQLContext}
 import songs.Types.{Song, SongFeatures}
 
@@ -146,4 +147,32 @@ object SongML {
 
   // TrainValidationSplit was not used because it currently does not offer model save/load functionality
 
+
+  def printStats(model: LinearRegressionModel, rm: RegressionMetrics, stage: String): String = {
+    val sb = new StringBuilder(4096)
+    sb.append(System.lineSeparator())
+    sb.append(System.lineSeparator())
+    sb.append(System.lineSeparator())
+    sb.append("Model coefficients:")
+    sb.append(System.lineSeparator())
+    SongML.featureLists.get(model.numFeatures).foreach{f =>
+      f.zip(model.coefficients.toArray).foreach{t =>
+        sb.append(s"${t._1}:\t${t._2}")
+        sb.append(System.lineSeparator())
+      }
+    }
+    sb.append(System.lineSeparator())
+    sb.append(s"$stage Metrics")
+    sb.append(System.lineSeparator())
+    sb.append(s"$stage Explained Variance:")
+    sb.append(s"${rm.explainedVariance}")
+    sb.append(s"$stage R^2:")
+    sb.append(s"${rm.r2}")
+    sb.append(s"$stage MSE:")
+    sb.append(s"${rm.meanSquaredError}")
+    sb.append(s"$stage RMSE:")
+    sb.append(s"${rm.rootMeanSquaredError}")
+    sb.append(System.lineSeparator())
+    sb.mkString
+  }
 }

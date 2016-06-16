@@ -161,8 +161,12 @@ object SongML {
     sb.append(System.lineSeparator())
     sb.append(coefs.toString)
     sb.append(System.lineSeparator())
-    sb.append(model.summary.tValues.toVector.toString())
-    sb.append(System.lineSeparator())
+    if (model.hasSummary){
+      sb.append("Model t-values:")
+      sb.append(System.lineSeparator())
+      sb.append(model.summary.tValues.toVector.toString())
+      sb.append(System.lineSeparator())
+    }
 
     SongML.featureLists.get(coefs.length).foreach{f =>
       f.zip(model.coefficients.toArray).foreach{t =>

@@ -1,11 +1,18 @@
 package songs
 
+import org.apache.hadoop.fs.Path
+import org.apache.spark.SparkContext
 import org.apache.spark.ml.Pipeline
 import org.apache.spark.ml.evaluation.RegressionEvaluator
 import org.apache.spark.ml.feature.{OneHotEncoder, VectorAssembler}
 import org.apache.spark.ml.regression.LinearRegression
 import org.apache.spark.ml.tuning.{CrossValidator, ParamGridBuilder}
-import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.mllib.regression.impl.GLMRegressionModel
+import org.apache.spark.mllib.regression.impl.GLMRegressionModel.SaveLoadV1_0.Data
+import org.apache.spark.mllib.regression.{LinearRegressionModel, RegressionModel}
+import org.apache.spark.mllib.util.Loader
+import org.apache.spark.sql.{DataFrame, Row, SQLContext}
 import songs.Types.{Song, SongFeatures}
 
 object SongML {
@@ -80,6 +87,7 @@ object SongML {
   val labelColumn = "artist_hotttnesss"
   val predictionColumn = "hotness_hat"
   val featuresColumn = "features"
+  val weightColumn = "weight"
 
   val allColumns = Vector(labelColumn) ++ initialColumns
 
@@ -97,8 +105,10 @@ object SongML {
     .setFeaturesCol(featuresColumn)
     .setLabelCol(labelColumn)
     .setPredictionCol(predictionColumn)
+    .setWeightCol(weightColumn)
     .setMaxIter(1000)
     .setTol(1e-6)
+    .setRegParam(0.1)
 
   // create a pipeline to run the encoding, feature assembly, and model training steps
   val transformPipeline = new Pipeline().setStages(Array(encoder1, encoder2, assembler))
@@ -119,5 +129,22 @@ object SongML {
     .setEstimatorParamMaps(paramGrid)
 
   // TrainValidationSplit was not used because it currently does not offer model save/load functionality
+
+  def loadLinearRegressionModel(sc: SparkContext, path: String): LinearRegressionModel = {
+    val datapath = new Path(path, "data").toUri.toString
+    val sqlContext = SQLContext.getOrCreate(sc)
+    val dataRDD = sqlContext.read.parquet(datapath)
+    val dataArray = dataRDD.select("weights", "intercept").take(1)
+    val modelClass = "org.apache.spark.ml.regression.LinearRegressionModel"
+    assert(dataArray.length == 1, s"Unable to load $modelClass data from: $datapath")
+    val data = dataArray(0)
+    assert(data.length == 2, s"Unable to load $modelClass data from: $datapath")
+    data match {
+      case Row(weights: Vector, intercept: Double) =>
+        new LinearRegressionModel(weights, intercept)
+      case _ =>
+        throw new Exception(s"LinearRegressionModel.load failed to load model from $path")
+    }
+  }
 
 }

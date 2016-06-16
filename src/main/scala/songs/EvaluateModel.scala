@@ -15,8 +15,8 @@ object EvaluateModel {
     val sqlContext = new SQLContext(sc)
     val logger = LoggerFactory.getLogger(getClass.getName)
 
-    logger.info("Loading Linear Regression Model")
-    val model = LinearRegressionModel.load(sc, Config.modelOut)
+    logger.info(s"Loading Linear Regression Model from ${Config.modelOut}")
+    val model = SongML.loadLinearRegressionModel(sc, Config.modelOut)
 
     logger.info("Printing weights and intercept for Linear Regression Model")
     val colWeights = SongML.featureColumns.zip(model.weights.toArray)

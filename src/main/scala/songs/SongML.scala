@@ -177,13 +177,11 @@ object SongML {
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.append("Model params:")
+    sb.append(System.lineSeparator())
     sb.append(model.explainParams())
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
-    sb.append(System.lineSeparator())
-    sb.append(System.lineSeparator())
-
 
     SongML.featureLists.get(coefs.length).foreach{f =>
       sb.append("Model coefficients:")

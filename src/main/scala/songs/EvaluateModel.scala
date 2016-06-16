@@ -24,12 +24,14 @@ object EvaluateModel {
     logger.info(s"Intercept: ${model.intercept}")
 
     logger.info("Loading datasets")
-    val data = SongML.loadModelData(sqlContext = sqlContext)
+    val datasets = SongML.loadModelData(sqlContext = sqlContext)
+    val pipelineModel = SongML.transformPipeline.fit(datasets.test)
+    val testData = pipelineModel.transform(datasets.test)
 
     logger.info("Calculating Regression Metrics")
-    val testFeatures = data.test.select(SongML.featuresColumn).map(r => r.getAs[mllib.linalg.Vector](SongML.featuresColumn))
+    val testFeatures = testData.select(SongML.featuresColumn).map(r => r.getAs[mllib.linalg.Vector](SongML.featuresColumn))
     val testPredictions = testFeatures.map(model.predict)
-    val testLabels = data.test.select(SongML.labelColumn).map(r => r.getAs[Double](SongML.labelColumn))
+    val testLabels = testData.select(SongML.labelColumn).map(r => r.getAs[Double](SongML.labelColumn))
 
     val rm = new RegressionMetrics(testPredictions.zip(testLabels).map(t => (t._1, t._2)))
 

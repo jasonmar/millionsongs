@@ -84,7 +84,6 @@ object SongML {
   val labelColumn = "artist_hotttnesss"
   val predictionColumn = "hotness_hat"
   val featuresColumn = "features"
-  val weightColumn = "weight"
 
   val allColumns = Vector(labelColumn) ++ initialColumns
 
@@ -102,7 +101,6 @@ object SongML {
     .setFeaturesCol(featuresColumn)
     .setLabelCol(labelColumn)
     .setPredictionCol(predictionColumn)
-    .setWeightCol(weightColumn)
     .setMaxIter(1000)
     .setTol(1e-6)
     .setRegParam(0.1)

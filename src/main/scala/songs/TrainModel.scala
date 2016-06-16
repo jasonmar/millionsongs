@@ -41,7 +41,7 @@ object TrainModel {
     logger.info("Training Metrics")
     logger.info("Training Explained Variance:")
     logger.info(s"${rm.explainedVariance}")
-    logger.info("Training R^2 Coef:")
+    logger.info("Training R^2:")
     logger.info(s"${rm.r2}")
     logger.info("Training MSE:")
     logger.info(s"${rm.meanSquaredError}")

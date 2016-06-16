@@ -38,7 +38,7 @@ object EvaluateModel {
     logger.info("Test Metrics")
     logger.info("Test Explained Variance:")
     logger.info(s"${rm.explainedVariance}")
-    logger.info("Test R^2 Coef:")
+    logger.info("Test R^2:")
     logger.info(s"${rm.r2}")
     logger.info("Test MSE:")
     logger.info(s"${rm.meanSquaredError}")

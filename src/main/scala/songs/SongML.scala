@@ -117,7 +117,7 @@ object SongML {
   val features4 = features3.filterNot(_ == "duration")
 
   // Used in hyperparameter grid to compare models with certain coefficients removed
-  val featureSelection: Array[Array[String]] = Array(
+  val featureSelection: Vector[Array[String]] = Vector(
     featureColumns,
     features2,
     features3,
@@ -128,10 +128,10 @@ object SongML {
   val featureLists = featureSelection.map(a => (a.length,a)).toMap
 
   val paramGrid = new ParamGridBuilder()
-    .addGrid(linReg.regParam, Array(0.1, 0.01))
-    .addGrid(linReg.fitIntercept, Array(true,false))
-    .addGrid(linReg.elasticNetParam, Array(0.0, 0.2, 0.6, 1.0))
-    .addGrid(assembler.inputCols,featureSelection)
+    .addGrid(linReg.regParam, Vector(0.1, 0.01))
+    .addGrid(linReg.fitIntercept, Vector(true, false))
+    .addGrid(linReg.elasticNetParam, Vector(0.0, 0.2, 1.0))
+    //.addGrid(assembler.inputCols, featureSelection)
     .build()
 
   val lrStages: Array[PipelineStage] = transformStages ++ Array[PipelineStage](linReg)
@@ -156,6 +156,9 @@ object SongML {
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
     sb.append(System.lineSeparator())
+    sb.append(System.lineSeparator())
+    sb.append("Model params:")
+    sb.append(model.explainParams())
     sb.append(System.lineSeparator())
     sb.append("Model coefficients:")
     sb.append(System.lineSeparator())

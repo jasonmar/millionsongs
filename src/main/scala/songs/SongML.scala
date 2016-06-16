@@ -66,20 +66,21 @@ object SongML {
   // specify columns to be used in features vector
   val featureColumns = Array(
     "duration"
-    ,"loudnessScaled"
-    ,"end_of_fade_inScaled"
+    ,"loudness"
+    ,"end_of_fade_in"
     ,"start_of_fade_out"
     ,"tempo"
     ,"keyVec"
     ,"modeVec"
-    ,"pitchRangeScaled"
-    ,"timbreRangeScaled"
-    ,"yearScaled"
+    ,"pitchRange"
+    ,"timbreRange"
+    ,"year"
   )
 
   val labelColumn = "artist_hotttnesss"
   val predictionColumn = "hotness_hat"
   val featuresColumn = "features"
+  val featuresColumnUnscaled = "features0"
 
   val allColumns = Vector(labelColumn) ++ initialColumns
 
@@ -90,7 +91,7 @@ object SongML {
   // Combines columns into a feature vector
   val assembler = new VectorAssembler()
     .setInputCols(featureColumns)
-    .setOutputCol(featuresColumn)
+    .setOutputCol(featuresColumnUnscaled)
 
   // specify the model hyperparameters
   val linReg = new LinearRegression()
@@ -101,14 +102,10 @@ object SongML {
     .setTol(1e-6)
     .setRegParam(0.1)
 
-  val scaler1 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("loudness").setOutputCol("loudnessScaled")
-  val scaler2 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("end_of_fade_in").setOutputCol("end_of_fade_inScaled")
-  val scaler3 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("pitchRange").setOutputCol("pitchRangeScaled")
-  val scaler4 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("timbreRange").setOutputCol("timbreRangeScaled")
-  val scaler5 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol("year").setOutputCol("yearScaled")
+  val scaler1 = new StandardScaler().setWithMean(true).setWithStd(true).setInputCol(featuresColumnUnscaled).setOutputCol(featuresColumn)
 
   // create a pipeline to run the encoding, feature assembly, and model training steps
-  val transformStages: Array[PipelineStage] = Array(encoder1, encoder2, scaler1, scaler2, scaler3, scaler4, scaler5, assembler)
+  val transformStages: Array[PipelineStage] = Array(encoder1, encoder2, assembler, scaler1)
   val transformPipeline = new Pipeline().setStages(transformStages)
 
   // Used in CrossValidator and TrainValidationSplit for hyperparameter optimization

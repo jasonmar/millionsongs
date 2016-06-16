@@ -40,7 +40,7 @@ object TrainModel {
 
     val rm = new RegressionMetrics(testPredictions)
 
-    val model = bestModel.stages(SongML.transformStages.indices.last).asInstanceOf[LinearRegressionModel]
+    val model = bestModel.stages(SongML.lrStages.indices.last).asInstanceOf[LinearRegressionModel]
 
     logger.info("Model coefficients:")
     SongML.featureLists.get(model.numFeatures).foreach{f =>

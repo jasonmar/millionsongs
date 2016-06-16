@@ -47,7 +47,7 @@ object Main {
     println(s"Training time: $elapsedTime seconds")
 
     // Save the trained model
-    lirModel.save(Config.modelOut)
+    lirModel.write.overwrite().save(Config.modelOut)
     val savedModel = LinearRegressionModel.load(sc,Config.modelOut)
 
     // Print the weights and intercept for linear regression.
@@ -60,12 +60,14 @@ object Main {
     val trainingMSE = trainingResults.select(SongML.labelColumn,SongML.predictionColumn).map(r => math.pow(r.getAs[Double](SongML.labelColumn) - r.getAs[Double](SongML.predictionColumn),2)).mean()
     println("Training data results:")
     println(s"MSE: $trainingMSE")
+    trainingResults.show(10)
 
     // print test results
     val testResults = lirModel.transform(loaded.test)
     val testMSE = testResults.select(SongML.labelColumn,SongML.predictionColumn).map(r => math.pow(r.getAs[Double](SongML.labelColumn) - r.getAs[Double](SongML.predictionColumn),2)).mean()
     println("Test data results:")
     println(s"MSE: $testMSE")
+    testResults.show(10)
 
     sc.stop()
 

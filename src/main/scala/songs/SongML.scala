@@ -121,7 +121,7 @@ object SongML {
 
   // Combines columns into a feature vector
   val assembler = new VectorAssembler()
-    .setInputCols(featureColumns)
+    .setInputCols(features4)
     .setOutputCol(featuresColumnUnscaled)
 
   // specify the model hyperparameters
